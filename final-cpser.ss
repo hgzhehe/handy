@@ -31,3 +31,48 @@
    [(fresh (rator met body x k-it k)
       (== k-strcut `(k-app-2 ,rator ,body ,x ,met ,k-it ,k))
       (cps-iᵒ rator met #f `(k-app-1 ,body ,x, met ,k-it ,k ,code) out))]))
+
+
+
+(define (nullᵒ l)
+  (== l '()))
+
+(define (consᵒ a d p)
+  (== p `(,a . ,d)))
+
+(define (carᵒ p a)
+  (fresh (d)
+    (consᵒ a d p)))
+
+(define (cdrᵒ p d)
+  (fresh (a)
+    (consᵒ a d p)))
+
+(define (listᵒ l)
+  (conde
+   [(nullᵒ l)]
+   [(fresh (d)
+      (cdrᵒ l d)
+      (listᵒ d))]))
+
+(define (proper-memberᵒ x l)
+  (conde
+   [(carᵒ l x)
+    (fresh (d)
+      (cdrᵒ l d)
+      (listᵒ d))]
+   [(fresh (d)
+      (cdrᵒ l d)
+      (proper-memberᵒ x d))]))
+
+(define (substᵒ o n expr out)
+  (conde
+   [(nullᵒ expr) (nullᵒ out)]
+   [(symbolo expr)
+    (conde
+     [(== expr o) (== out n)]
+     [(=/= expr o) (== out expr)])]
+   [(fresh (a d ares dres)
+      (consᵒ ares dres out)
+      (substᵒ o n a ares)
+      (substᵒ o n d dres))]))
